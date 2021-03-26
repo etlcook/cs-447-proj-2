@@ -13,9 +13,6 @@ HTTP_PORT = HTTP_PORT.split(delim, 1)[1]
 print('HTTP port: ', HTTP_PORT, '\n')
 config.close()
 
-
-HOST = '192.168.0.10'
-
 emailsLeft = 0
 emailCount = 0
 userPath = os.getcwd()
@@ -69,21 +66,18 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as servSock:
 
             else:
                 resp = '404 directory not found'
-                conn.sendall(bytes(resp, 'utf-8'))
+                conn.sendall(resp.encode())
                 conn.close()
                 break
 
-            resp = 'HTTP/1.1 200 OK\nServer: ' + HOST + '\nCount: ' + str(emailCount) + '\nContent-Type: text/plain\n'
+            resp = 'HTTP/1.1 200 OK\nServer: ' + socket.gethostname() + '\nCount: ' + str(emailCount) + '\nContent-Type: text/plain\n'
             
             #add all email objects to the response string
             for email in emailObjects:
                 resp = resp + email
 
             #send the HTTP response
-            conn.sendall(bytes(resp, 'utf-8'))
+            conn.sendall(resp.encode())
 
 #go back to server options menu
-os.system('server-driver.py')
-            
-
-#TODO send files line by line as bytes
+os.system('python server-driver.py')

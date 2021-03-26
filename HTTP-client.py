@@ -9,7 +9,7 @@ if not os.path.exists(path):
     os.mkdir(path)
 
 #pull data from the client.conf file
-config = open('client.conf', 'r') #replace 'client.conf' with filename
+config = open('client.conf', 'r')
 configValues = config.read()
 configList = configValues.split('\n')
 SERVER_IP = configList[0]
@@ -25,7 +25,6 @@ global username
 username = input("username: ")
 
 def saveEmails(resp):
-    resp = resp.decode('utf-8')
     userPath = os.getcwd()
     userPath = userPath + '/db/' + username
     if not os.path.exists(userPath):
@@ -61,9 +60,9 @@ def sendGet():
             numEmails = input('enter the number of emails you\'d like to retrieve(or QUIT to quit): ')
             req = ''
             if numEmails == 'QUIT':
-                cliSock.sendall(bytes(numEmails, 'utf-8'))
-                resp = cliSock.recv(1024)
-                print('from server-> ', repr(resp))
+                cliSock.sendall(numEmails.encode())
+                resp = cliSock.recv(1024).decode()
+                print('from server-> ', resp)
                 exit()
             
             ###generate GET response###
@@ -72,11 +71,13 @@ def sendGet():
             req = req + 'Host: ' + SERVER_IP + '\n'
             req = req + 'Count: ' + str(numEmails)
 
-            cliSock.sendall(bytes(req, 'utf-8'))
-            resp = cliSock.recv(1024)
-            print('from server->\n', resp.decode('utf-8'))
+            sendOK = input("\n" + req + '\nsend message? (y/n)')
+            if sendOK == 'y':
+                cliSock.sendall(bytes(req, 'utf-8'))
+                resp = cliSock.recv(1024).decode()
+                print('from server->\n', resp)
 
-            saveEmails(resp)
+                saveEmails(resp)
 
 sendGet()
 
