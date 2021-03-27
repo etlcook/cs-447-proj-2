@@ -150,7 +150,8 @@ def handleEmailSending(senderAddress, receivingUsers, emailString, DOMAIN, other
                 remotePort = otherServers[i + 2]
             i = i + 1
 
-        #TODO: connect to smtp server
+        emailBody = emailString.split("Message:\n")[1]
+
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as senderSock:
             senderSock.connect((remoteIP, int(remotePort)))
             print('connected to ', remoteIP, ' on port ', remotePort, '\n\n')
@@ -162,7 +163,7 @@ def handleEmailSending(senderAddress, receivingUsers, emailString, DOMAIN, other
             response = senderSock.recv(1024).decode()
             senderSock.sendall(("DATA").encode())
             response = senderSock.recv(1024).decode()
-            senderSock.sendall((emailString).encode())
+            senderSock.sendall((emailBody).encode())
             response = senderSock.recv(1024).decode()
 
     for emailAddress in receivingUsers:
@@ -185,10 +186,6 @@ def handleEmailSending(senderAddress, receivingUsers, emailString, DOMAIN, other
             print('the domain: ' + str(userDomain) + ' is not recognised. skipping..')
             continue
 
-
-
-    conn.sendall(emailString.encode())
-
 #userType is either 'client' or 'server' depending on who is connected through SMTP port
 def main(servSock, conn, addr, DOMAIN, userType, otherServers):
     #TODO: implement difference in client-server versus server-server
@@ -208,49 +205,8 @@ def main(servSock, conn, addr, DOMAIN, userType, otherServers):
             recUsers = recUsers[1]
             recUsers = recUsers.split()
 
-            #encapsulate everything below into this and subsequent functions
-            print('\nthis is where the fun begins..\n')
+            #this does the rest of the work
             handleEmailSending(senderAddress, recUsers, userEmail, DOMAIN, otherServers)
-            #TODO: delete rest after above funct complete
-
-            # for user in recUsers:
-            #     #make user paths that don't exist
-            #     #make sure this is valid domain
-            #     if '@' not in user:
-            #         conn.sendall('500 error: \'' + user + '\' is not a valid address')
-            #         sys.exit()
-            #     #separate username from domain
-            #     userSplit = user.split('@') #can use userSplit[1] to see domain!
-            #     username = userSplit[0]
-            #     userDomain = userSplit[1]
-            #
-            #     path = os.getcwd()
-            #     userPath = 'db/' + username
-            #     fullUserPath = os.path.join(path, userPath)
-            #     #make db entry for user if not exists
-            #     if not os.path.exists(fullUserPath):
-            #         os.makedirs(fullUserPath)
-            #         k = open(fullUserPath + '/nextnum.txt', 'w')
-            #         k.write(str(int(1)))
-            #         k.close()
-            #     #read next number for email file name and increment
-            #     z = open(fullUserPath + '/nextnum.txt', 'r')
-            #     fnum = int(z.read())
-            #     z.close()
-            #     nextFileNum = int(fnum) + 1
-            #     #increment file for next time
-            #     s = open(fullUserPath + '/nextnum.txt', 'w')
-            #     s.write(str(nextFileNum))
-            #     s.close()
-            #
-            # #create new email file in user db folder
-            # newEmailFile = str(fnum) + '.email'
-            # newEmailFile = userPath + '/' + newEmailFile
-            # j = open(newEmailFile, 'w')
-            # j.write(userEmail)
-            # j.close()
-            #
-            # conn.sendall(userEmail.encode())
 
 if __name__ == "__main__":
     createDBifNeeded()
@@ -261,7 +217,7 @@ if __name__ == "__main__":
         print("server is running...")
         while True:
             conn, addr = servSock.accept()
-            if addr in otherServers:
+            if addr[0] in otherServers:
                 print('\nConnected by server: ', addr)
                 try:
                     x = threading.Thread(target=main, args=(servSock, conn, addr, DOMAIN, 'server', otherServers))

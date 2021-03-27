@@ -50,6 +50,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cliSock:
             sys.exit()
         printResponse(data)
 
-    os.system('python client-driver.py')
+#return to driver options menu
+os.system('python client-driver.py')
 
 

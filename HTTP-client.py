@@ -2,7 +2,9 @@
 
 import socket
 import os
+import sys
 
+#make db folder if not exists
 path = os.getcwd()
 path = path + '/db'
 if not os.path.exists(path):
@@ -56,29 +58,28 @@ def sendGet():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cliSock:
         cliSock.connect((SERVER_IP, int(HTTP_PORT)))
         print('connection successful\n\n')
-        while True:
-            numEmails = input('enter the number of emails you\'d like to retrieve(or QUIT to quit): ')
-            req = ''
-            if numEmails == 'QUIT':
-                cliSock.sendall(numEmails.encode())
-                resp = cliSock.recv(1024).decode()
-                print('from server-> ', resp)
-                exit()
-            
-            ###generate GET response###
+        numEmails = input('enter the number of emails you\'d like to retrieve(or QUIT to quit): ')
+        req = ''
+        if numEmails == 'QUIT':
+            print("quitting, have a nice day\n")
+            sys.exit()
 
-            req = 'GET /db/' + username + ' HTTP/1.1\n'
-            req = req + 'Host: ' + SERVER_IP + '\n'
-            req = req + 'Count: ' + str(numEmails)
+        ###generate GET response###
+        req = 'GET /db/' + username + ' HTTP/1.1\n'
+        req = req + 'Host: ' + SERVER_IP + '\n'
+        req = req + 'Count: ' + str(numEmails)
 
-            sendOK = input("\n" + req + '\nsend message? (y/n)')
-            if sendOK == 'y':
-                cliSock.sendall(bytes(req, 'utf-8'))
-                resp = cliSock.recv(1024).decode()
-                print('from server->\n', resp)
+        sendOK = input("\n" + req + '\nsend message? (y/n)')
+        if sendOK == 'y':
+            cliSock.sendall(bytes(req, 'utf-8'))
+            resp = cliSock.recv(1024).decode()
+            print('from server->\n', resp)
+            if resp[0] == '4':
+                print("something went wrong, exiting")
 
-                saveEmails(resp)
+            saveEmails(resp)
+
+        #go back to driver menu
+        os.system("python client-driver.py")
 
 sendGet()
-
-#TODO create directory for emails and save them
